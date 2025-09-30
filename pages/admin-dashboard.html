@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - PropertyHub</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+        
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .user-detail {
+            margin-bottom: 15px;
+        }
+        
+        .user-detail label {
+            font-weight: bold;
+            display: inline-block;
+            width: 120px;
+        }
+        
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        /* Toggle Switch Styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+        
+        input:focus + .slider {
+            box-shadow: 0 0 1px var(--primary-color);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .slider.round {
+            border-radius: 24px;
+        }
+        
+        .slider.round:before {
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <h1>PropertyHub</h1>
+            <p>Premium Business Real Estate</p>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="properties.html">Properties</a></li>
+                <li><a href="#" class="active">Dashboard</a></li>
+                <li><a href="login.html">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="dashboard">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>Admin Dashboard</h3>
+                <p>Admin Name</p>
+                <p>admin@example.com</p>
+            </div>
+            <div class="sidebar-nav">
+                <ul>
+                    <li><a href="#" class="active">Dashboard</a></li>
+                    <li><a href="#property-approvals">Property Approvals</a></li>
+                    <li><a href="#featured-properties">Featured Properties</a></li>
+                    <li><a href="#users">User Management</a></li>
+                    <li><a href="#settings">Settings</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <h2>Admin Dashboard</h2>
+            </div>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <h3>Total Properties</h3>
+                    <p id="total-properties-count">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Approvals</h3>
+                    <p id="pending-approvals-count">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Approved Properties</h3>
+                    <p id="approved-properties-count">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Users</h3>
+                    <p id="total-users-count">0</p>
+                </div>
+            </div>
+            
+            <h3 id="property-approvals">Property Approvals</h3>
+            <div class="table-container">
+                <table class="property-table">
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Location</th>
+                            <th>Price</th>
+                            <th>Seller</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pending-properties">
+                        <!-- Properties pending approval will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 id="featured-properties" style="margin-top: 50px;">Manage Featured Properties</h3>
+            <div class="table-container">
+                <table class="property-table">
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Location</th>
+                            <th>Price</th>
+                            <th>Seller</th>
+                            <th>Featured</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approved-properties-list">
+                        <!-- Approved properties will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 id="users" style="margin-top: 50px;">User Management</h3>
+            <div class="table-container">
+                <table class="property-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list">
+                        <!-- Users will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Details Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>User Details</h3>
+            <div id="user-details">
+                <!-- User details will be loaded here -->
+            </div>
+            <div class="action-buttons">
+                <button id="suspend-user-btn" class="btn-small">Suspend User</button>
+                <button id="delete-user-btn" class="btn-small">Delete User</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>PropertyHub</h3>
+                <p>Your trusted platform for business real estate in Bangladesh.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="properties.html">Properties</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Email: info@propertyhub.bd</p>
+                <p>Phone: +880 123 456 7890</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2023 PropertyHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../js/script.js"></script>
+    <script>
+        // Additional admin dashboard functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update dashboard counts
+            updateDashboardCounts();
+            
+            // Load users
+            loadUsers();
+            
+            // Load approved properties for featured management
+            loadApprovedProperties();
+            
+            // Modal functionality
+            const modal = document.getElementById('user-modal');
+            const closeModal = document.querySelector('.close-modal');
+            
+            closeModal.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+            
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+            
+            // Suspend user button
+            document.getElementById('suspend-user-btn').addEventListener('click', function() {
+                const email = this.dataset.email;
+                if (email) {
+                    suspendUser(email);
+                }
+            });
+            
+            // Delete user button
+            document.getElementById('delete-user-btn').addEventListener('click', function() {
+                const email = this.dataset.email;
+                if (email) {
+                    deleteUser(email);
+                }
+            });
+        });
+
+        // Update dashboard counts
+        function updateDashboardCounts() {
+            const properties = JSON.parse(localStorage.getItem('properties') || '[]');
+            const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            
+            document.getElementById('total-properties-count').textContent = properties.length;
+            document.getElementById('pending-approvals-count').textContent = properties.filter(p => p.status === 'pending').length;
+            document.getElementById('approved-properties-count').textContent = properties.filter(p => p.status === 'approved').length;
+            document.getElementById('total-users-count').textContent = users.length;
+        }
+
+        // Load users for admin dashboard
+        function loadUsers() {
+            const userListContainer = document.getElementById('user-list');
+            if (!userListContainer) return;
+            
+            const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            
+            if (users.length === 0) {
+                userListContainer.innerHTML = '<tr><td colspan="5">No users registered yet.</td></tr>';
+                return;
+            }
+            
+            // Clear container
+            userListContainer.innerHTML = '';
+            
+            // Add each user
+            users.forEach(user => {
+                const userRow = document.createElement('tr');
+                
+                userRow.innerHTML = `
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>${user.role}</td>
+                    <td>${user.status || 'Active'}</td>
+                    <td>
+                        <button class="btn-small view-user" data-email="${user.email}">View</button>
+                    </td>
+                `;
+                
+                userListContainer.appendChild(userRow);
+            });
+            
+            // Add event listeners to view buttons
+            const viewButtons = document.querySelectorAll('.view-user');
+            viewButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const email = this.dataset.email;
+                    viewUserDetails(email);
+                });
+            });
+        }
+        
+        // View user details
+        function viewUserDetails(email) {
+            const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            const user = users.find(u => u.email === email);
+            
+            if (!user) {
+                alert('User not found');
+                return;
+            }
+            
+            // Populate user details in modal
+            const userDetailsContainer = document.getElementById('user-details');
+            userDetailsContainer.innerHTML = `
+                <div class="user-detail">
+                    <label>Name:</label>
+                    <span>${user.name}</span>
+                </div>
+                <div class="user-detail">
+                    <label>Email:</label>
+                    <span>${user.email}</span>
+                </div>
+                <div class="user-detail">
+                    <label>Phone:</label>
+                    <span>${user.phone || 'Not provided'}</span>
+                </div>
+                <div class="user-detail">
+                    <label>Role:</label>
+                    <span>${user.role}</span>
+                </div>
+                <div class="user-detail">
+                    <label>Status:</label>
+                    <span>${user.status || 'Active'}</span>
+                </div>
+                <div class="user-detail">
+                    <label>Joined:</label>
+                    <span>${new Date(user.joinedAt || Date.now()).toLocaleDateString()}</span>
+                </div>
+            `;
+            
+            // Set user email for action buttons
+            document.getElementById('suspend-user-btn').dataset.email = email;
+            document.getElementById('delete-user-btn').dataset.email = email;
+            
+            // Show modal
+            document.getElementById('user-modal').style.display = 'block';
+        }
+        
+        // Suspend user
+        function suspendUser(email) {
+            const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            const updatedUsers = users.map(user => {
+                if (user.email === email) {
+                    return { ...user, status: user.status === 'Suspended' ? 'Active' : 'Suspended' };
+                }
+                return user;
+            });
+            
+            localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
+            
+            alert(`User ${email} has been ${users.find(u => u.email === email).status === 'Suspended' ? 'activated' : 'suspended'}.`);
+            
+            // Reload users
+            loadUsers();
+            
+            // Close modal
+            document.getElementById('user-modal').style.display = 'none';
+        }
+        
+        // Delete user
+        function deleteUser(email) {
+            if (!confirm(`Are you sure you want to delete user ${email}? This action cannot be undone.`)) {
+                return;
+            }
+            
+            const users = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            const updatedUsers = users.filter(user => user.email !== email);
+            
+            localStorage.setItem('registeredUsers', JSON.stringify(updatedUsers));
+            
+            alert(`User ${email} has been deleted.`);
+            
+            // Update dashboard counts
+            updateDashboardCounts();
+            
+            // Reload users
+            loadUsers();
+            
+            // Close modal
+            document.getElementById('user-modal').style.display = 'none';
+        }
+
+        // Load approved properties for featured management
+        function loadApprovedProperties() {
+            const properties = JSON.parse(localStorage.getItem('properties') || '[]');
+            const approvedPropertiesContainer = document.getElementById('approved-properties-list');
+            
+            if (!approvedPropertiesContainer) return;
+            
+            // Filter to only approved properties
+            const approvedProperties = properties.filter(p => p.status === 'approved');
+            
+            if (approvedProperties.length === 0) {
+                approvedPropertiesContainer.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center;">No approved properties found</td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Clear container
+            approvedPropertiesContainer.innerHTML = '';
+            
+            // Display each property
+            approvedProperties.forEach(property => {
+                const row = document.createElement('tr');
+                
+                // Determine price/rent display
+                let priceDisplay = '';
+                if (property.listingType === 'rent') {
+                    priceDisplay = `৳${Number(property.rent).toLocaleString()}/month`;
+                } else {
+                    priceDisplay = `৳${Number(property.price).toLocaleString()}`;
+                }
+                
+                row.innerHTML = `
+                    <td>${property.title}</td>
+                    <td>${property.address}, ${property.city}</td>
+                    <td>${priceDisplay}</td>
+                    <td>${property.seller ? property.seller.name : 'Unknown'}</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" class="featured-toggle" data-id="${property.id}" ${property.featured ? 'checked' : ''}>
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
+                    <td>
+                        <a href="../pages/property-details.html?id=${property.id}" class="btn-small">View</a>
+                    </td>
+                `;
+                
+                approvedPropertiesContainer.appendChild(row);
+            });
+            
+            // Add event listeners to featured toggles
+            document.querySelectorAll('.featured-toggle').forEach(toggle => {
+                toggle.addEventListener('change', function() {
+                    const propertyId = this.dataset.id;
+                    toggleFeaturedProperty(propertyId, this.checked);
+                });
+            });
+        }
+        
+        // Toggle featured status for a property
+        function toggleFeaturedProperty(propertyId, isFeatured) {
+            const properties = JSON.parse(localStorage.getItem('properties') || '[]');
+            
+            // Find property and update featured status
+            const updatedProperties = properties.map(property => {
+                if (property.id === propertyId) {
+                    return { ...property, featured: isFeatured };
+                }
+                return property;
+            });
+            
+            // Save updated properties
+            localStorage.setItem('properties', JSON.stringify(updatedProperties));
+            
+            // Show success message
+            alert(`Property ${isFeatured ? 'added to' : 'removed from'} featured listings`);
+        }
+    </script>
+</body>
+</html> 

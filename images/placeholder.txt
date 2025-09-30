@@ -1,0 +1,7 @@
+This folder should contain the following images:
+
+1. hero.jpg - Banner image for the home page (1920x1080px recommended)
+2. property1.jpg to property6.jpg - Thumbnail images for property listings (800x600px recommended)
+3. property1-2.jpg to property1-5.jpg - Additional images for the first property gallery (800x600px recommended)
+
+For a complete experience, please add these images before using the website. 

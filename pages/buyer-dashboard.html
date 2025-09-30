@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buyer Dashboard - PropertyHub</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 40px;
+            right: 0;
+            background-color: white;
+            min-width: 350px;
+            max-width: 400px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            z-index: 100;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .notification-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .notification-list {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+        
+        .notification-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .notification-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .notification-item.unread {
+            background-color: var(--primary-very-light);
+        }
+        
+        .notification-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .notification-item-message {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .notification-item-time {
+            font-size: 0.8rem;
+            color: #999;
+        }
+        
+        .notification-empty {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .notification-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <h1>PropertyHub</h1>
+            <p>Premium Business Real Estate</p>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="properties.html">Properties</a></li>
+                <li><a href="#" class="active">Dashboard</a></li>
+                <li><a href="login.html">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="dashboard">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>Buyer Dashboard</h3>
+                <p>Buyer Name</p>
+                <p>buyer@example.com</p>
+            </div>
+            <div class="sidebar-nav">
+                <ul>
+                    <li><a href="#" class="active">Dashboard</a></li>
+                    <li><a href="#available-properties">Available Properties</a></li>
+                    <li><a href="#saved-properties">Saved Properties</a></li>
+                    <li><a href="#messages">Messages</a></li>
+                    <li><a href="#profile">Profile</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <h2>Buyer Dashboard</h2>
+            </div>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <h3>Saved Properties</h3>
+                    <p id="saved-properties-count">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Contact Requests</h3>
+                    <p id="contact-requests-count">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>New Messages</h3>
+                    <p id="new-messages-count">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Property Alerts</h3>
+                    <p id="property-alerts-count">0</p>
+                </div>
+            </div>
+            
+            <!-- Notification checker utility -->
+            <div style="margin: 10px 0 30px; padding: 15px; background-color: #f9f9f9; border-radius: 4px; border: 1px solid #ddd;">
+                <h4 style="margin-top: 0">Notification Tools</h4>
+                <p style="margin-bottom: 10px">Use this button to check your notifications:</p>
+                <button id="check-notifications" class="btn-small" style="background-color: #2196F3;">Check Notifications</button>
+                <div id="test-result" style="margin-top: 10px; font-size: 0.9rem;"></div>
+            </div>
+            
+            <h3 id="available-properties">Available Properties</h3>
+            <div class="properties-filters" style="display: flex; justify-content: space-between; margin-bottom: 30px;">
+                <div class="filter-group" style="display: flex; gap: 15px;">
+                    <select class="form-control">
+                        <option value="">All Property Types</option>
+                        <option value="office">Office Space</option>
+                        <option value="retail">Retail Space</option>
+                        <option value="warehouse">Warehouse</option>
+                        <option value="industrial">Industrial Property</option>
+                        <option value="condo">Condominium</option>
+                        <option value="apartment">Apartment</option>
+                        <option value="plot">Plot for Sale</option>
+                    </select>
+                    
+                    <select class="form-control">
+                        <option value="">All Locations</option>
+                        <option value="dhaka">Dhaka</option>
+                        <option value="chittagong">Chittagong</option>
+                        <option value="khulna">Khulna</option>
+                        <option value="rajshahi">Rajshahi</option>
+                    </select>
+                    
+                    <select class="form-control">
+                        <option value="">Price Range</option>
+                        <option value="range1">Below ৳10,000,000</option>
+                        <option value="range2">৳10,000,000 - ৳20,000,000</option>
+                        <option value="range3">৳20,000,000 - ৳30,000,000</option>
+                        <option value="range4">Above ৳30,000,000</option>
+                    </select>
+                </div>
+                
+                <div class="sort-group">
+                    <select class="form-control">
+                        <option value="newest">Newest First</option>
+                        <option value="price-asc">Price: Low to High</option>
+                        <option value="price-desc">Price: High to Low</option>
+                        <option value="area-asc">Area: Small to Large</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="property-grid" id="property-listings">
+                <!-- Available properties will be loaded here by JavaScript -->
+                <p>Loading properties...</p>
+            </div>
+            
+            <h3 id="saved-properties" style="margin-top: 50px;">Saved Properties</h3>
+            <div id="saved-properties-list">
+                <p>You haven't saved any properties yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>PropertyHub</h3>
+                <p>Your trusted platform for business real estate in Bangladesh.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="properties.html">Properties</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Email: info@propertyhub.bd</p>
+                <p>Phone: +880 123 456 7890</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2023 PropertyHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="../js/script.js"></script>
+    <script>
+        // Initialize buyer dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Buyer dashboard loaded');
+            
+            // Load user data and update UI
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            console.log('User data loaded:', userData);
+            
+            // Update dashboard stats immediately
+            updateDashboardStats();
+            
+            // Load available properties and add save functionality
+            loadAvailableProperties();
+            
+            // Load user bookings and visits
+            if (typeof loadUserBookingsAndVisits === 'function') {
+                loadUserBookingsAndVisits();
+            }
+            
+            // Handle check notifications button
+            const checkNotificationsBtn = document.getElementById('check-notifications');
+            const testResultDiv = document.getElementById('test-result');
+            
+            if (checkNotificationsBtn && testResultDiv) {
+                checkNotificationsBtn.addEventListener('click', function() {
+                    testResultDiv.innerHTML = 'Checking notifications...';
+                    
+                    // Get user data
+                    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                    if (!userData.email) {
+                        testResultDiv.innerHTML = '<p style="color: red">No user logged in!</p>';
+                        return;
+                    }
+                    
+                    // Get notifications
+                    const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+                    const userNotifications = notifications.filter(n => n.recipientEmail === userData.email);
+                    
+                    if (userNotifications.length === 0) {
+                        testResultDiv.innerHTML = '<p style="color: orange">No notifications found for this user.</p>';
+                    } else {
+                        testResultDiv.innerHTML = `
+                            <p style="color: green">Found ${userNotifications.length} notifications for this user.</p>
+                            <ul style="margin-top: 5px; padding-left: 20px;">
+                                ${userNotifications.map(n => `<li>${n.title} - ${new Date(n.createdAt).toLocaleString()}</li>`).join('')}
+                            </ul>
+                        `;
+                    }
+                    
+                    // Update dashboard stats after checking notifications
+                    updateDashboardStats();
+                });
+            }
+
+            // Function to load available properties
+            function loadAvailableProperties() {
+                const propertyListingsDiv = document.getElementById('property-listings');
+                if (!propertyListingsDiv) return;
+                
+                // Get properties from localStorage
+                const properties = JSON.parse(localStorage.getItem('properties') || '[]');
+                
+                if (properties.length === 0) {
+                    propertyListingsDiv.innerHTML = '<p>No properties available.</p>';
+                    return;
+                }
+                
+                propertyListingsDiv.innerHTML = '';
+                properties.forEach(property => {
+                    const propertyCard = document.createElement('div');
+                    propertyCard.className = 'property-card';
+                    propertyCard.setAttribute('data-id', property.id);
+                    
+                    // Check if property is saved
+                    const savedProperties = JSON.parse(localStorage.getItem('savedProperties') || '{}');
+                    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                    const userSavedProperties = (userData.email && savedProperties[userData.email]) ? savedProperties[userData.email] : [];
+                    const isSaved = userSavedProperties.includes(property.id);
+                    
+                    propertyCard.innerHTML = `
+                        <img src="${property.imageUrl || '../images/property-placeholder.jpg'}" alt="${property.title}">
+                        <div class="property-details">
+                            <h3>${property.title}</h3>
+                            <p class="property-location">${property.location}</p>
+                            <p class="property-price">৳${parseFloat(property.price).toLocaleString()}</p>
+                            <p class="property-type">${property.type}</p>
+                            <div class="property-actions">
+                                <button class="btn-small view-property" data-id="${property.id}">View Details</button>
+                                <button class="btn-small save-property-btn ${isSaved ? 'saved' : ''}" data-id="${property.id}">
+                                    ${isSaved ? 'Saved ★' : 'Save ☆'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    propertyListingsDiv.appendChild(propertyCard);
+                    
+                    // Add event listener to save button
+                    const saveBtn = propertyCard.querySelector('.save-property-btn');
+                    saveBtn.addEventListener('click', function() {
+                        const propertyId = this.getAttribute('data-id');
+                        saveProperty(propertyId, this);
+                    });
+                });
+            }
+            
+            // Function to save/unsave property
+            function saveProperty(propertyId, buttonElement) {
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                if (!userData.email) {
+                    alert('Please login to save properties');
+                    return;
+                }
+                
+                // Get saved properties
+                const savedProperties = JSON.parse(localStorage.getItem('savedProperties') || '{}');
+                const userSavedProperties = savedProperties[userData.email] || [];
+                
+                // Check if already saved
+                const isSaved = userSavedProperties.includes(propertyId);
+                
+                console.log('Before action - Saved properties:', userSavedProperties);
+                
+                if (isSaved) {
+                    // Remove from saved
+                    const index = userSavedProperties.indexOf(propertyId);
+                    userSavedProperties.splice(index, 1);
+                    buttonElement.textContent = 'Save ☆';
+                    buttonElement.classList.remove('saved');
+                } else {
+                    // Add to saved
+                    userSavedProperties.push(propertyId);
+                    buttonElement.textContent = 'Saved ★';
+                    buttonElement.classList.add('saved');
+                }
+                
+                // Update localStorage
+                savedProperties[userData.email] = userSavedProperties;
+                localStorage.setItem('savedProperties', JSON.stringify(savedProperties));
+                
+                console.log('After action - Saved properties:', userSavedProperties);
+                
+                // Update saved properties list
+                updateSavedPropertiesList();
+                
+                // Update dashboard stats
+                updateDashboardStats();
+            }
+            
+            // Function to update saved properties list
+            function updateSavedPropertiesList() {
+                const savedPropertiesDiv = document.getElementById('saved-properties-list');
+                if (!savedPropertiesDiv) return;
+                
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                if (!userData.email) {
+                    savedPropertiesDiv.innerHTML = '<p>Please log in to save properties</p>';
+                    return;
+                }
+                
+                // Get saved properties
+                const savedProperties = JSON.parse(localStorage.getItem('savedProperties') || '{}');
+                const userSavedProperties = savedProperties[userData.email] || [];
+                
+                if (userSavedProperties.length === 0) {
+                    savedPropertiesDiv.innerHTML = '<p>You haven\'t saved any properties yet.</p>';
+                    return;
+                }
+                
+                // Get all properties
+                const properties = JSON.parse(localStorage.getItem('properties') || '[]');
+                
+                // Filter saved properties
+                const savedPropertiesList = properties.filter(property => 
+                    userSavedProperties.includes(property.id)
+                );
+                
+                if (savedPropertiesList.length === 0) {
+                    savedPropertiesDiv.innerHTML = '<p>You haven\'t saved any properties yet.</p>';
+                    return;
+                }
+                
+                // Build HTML
+                savedPropertiesDiv.innerHTML = '<div class="property-grid">' + 
+                    savedPropertiesList.map(property => `
+                        <div class="property-card" data-id="${property.id}">
+                            <img src="${property.imageUrl || '../images/property-placeholder.jpg'}" alt="${property.title}">
+                            <div class="property-details">
+                                <h3>${property.title}</h3>
+                                <p class="property-location">${property.location}</p>
+                                <p class="property-price">৳${parseFloat(property.price).toLocaleString()}</p>
+                                <p class="property-type">${property.type}</p>
+                                <div class="property-actions">
+                                    <button class="btn-small view-property" data-id="${property.id}">View Details</button>
+                                    <button class="btn-small unsave-property-btn" data-id="${property.id}">Remove ✕</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('') + 
+                '</div>';
+                
+                // Add event listeners to unsave buttons
+                const unsaveButtons = savedPropertiesDiv.querySelectorAll('.unsave-property-btn');
+                unsaveButtons.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const propertyId = this.getAttribute('data-id');
+                        
+                        // Get saved properties
+                        const savedProperties = JSON.parse(localStorage.getItem('savedProperties') || '{}');
+                        const userSavedProperties = savedProperties[userData.email] || [];
+                        
+                        // Remove from saved
+                        const index = userSavedProperties.indexOf(propertyId);
+                        if (index !== -1) {
+                            userSavedProperties.splice(index, 1);
+                        }
+                        
+                        // Update localStorage
+                        savedProperties[userData.email] = userSavedProperties;
+                        localStorage.setItem('savedProperties', JSON.stringify(savedProperties));
+                        
+                        // Update UI
+                        updateSavedPropertiesList();
+                        updateDashboardStats();
+                        
+                        // Also update save button in property listings
+                        const saveBtn = document.querySelector(`.save-property-btn[data-id="${propertyId}"]`);
+                        if (saveBtn) {
+                            saveBtn.textContent = 'Save ☆';
+                            saveBtn.classList.remove('saved');
+                        }
+                    });
+                });
+            }
+            
+            // Function to update dashboard stats
+            function updateDashboardStats() {
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                if (!userData.email) return;
+                
+                console.log('Updating dashboard stats for user:', userData.email);
+                
+                // Update saved properties count
+                const savedProperties = JSON.parse(localStorage.getItem('savedProperties') || '{}');
+                const userSavedProperties = savedProperties[userData.email] || [];
+                const savedPropertiesCount = document.getElementById('saved-properties-count');
+                if (savedPropertiesCount) {
+                    savedPropertiesCount.textContent = userSavedProperties.length;
+                    console.log('Updated saved properties count:', userSavedProperties.length);
+                }
+                
+                // Update property alerts count - fixed with strict filtering
+                const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+                
+                // Log all user notifications for debugging
+                console.log('All user notifications:', notifications.filter(n => n.recipientEmail === userData.email));
+                
+                // Use ONLY type === 'property-alert' for strict filtering
+                const propertyAlerts = notifications.filter(n => 
+                    n.recipientEmail === userData.email && 
+                    n.type === 'property-alert'
+                );
+                
+                console.log('Filtered property alerts:', propertyAlerts);
+                
+                const propertyAlertsCount = document.getElementById('property-alerts-count');
+                if (propertyAlertsCount) {
+                    propertyAlertsCount.textContent = propertyAlerts.length;
+                    console.log('Updated property alerts count:', propertyAlerts.length);
+                }
+                
+                // Handle the test button to see all notification types
+                const checkNotificationsBtn = document.getElementById('check-notifications');
+                if (checkNotificationsBtn) {
+                    checkNotificationsBtn.onclick = function() {
+                        const testResultDiv = document.getElementById('test-result');
+                        if (testResultDiv) {
+                            // Get all notification types for debugging
+                            const notificationTypes = {};
+                            notifications.forEach(n => {
+                                if (n.recipientEmail === userData.email) {
+                                    notificationTypes[n.type || 'unspecified'] = (notificationTypes[n.type || 'unspecified'] || 0) + 1;
+                                }
+                            });
+                            
+                            testResultDiv.innerHTML = `
+                                <p>Notification Analysis:</p>
+                                <ul>
+                                    <li>Total notifications: ${notifications.filter(n => n.recipientEmail === userData.email).length}</li>
+                                    <li>Property alerts (strict): ${propertyAlerts.length}</li>
+                                    <li>Notification types found: ${Object.keys(notificationTypes).join(', ')}</li>
+                                </ul>
+                                <pre style="background:#f5f5f5; padding:10px; overflow:auto; max-height:200px; font-size:11px;">
+${JSON.stringify(notificationTypes, null, 2)}
+                                </pre>
+                            `;
+                            
+                            // Force reset property alerts count to zero if needed
+                            if (propertyAlerts.length !== parseInt(propertyAlertsCount.textContent)) {
+                                propertyAlertsCount.textContent = propertyAlerts.length;
+                                console.log('FORCE RESET property alerts count to:', propertyAlerts.length);
+                            }
+                        }
+                    };
+                }
+                
+                // Update contact requests count
+                const contactRequests = JSON.parse(localStorage.getItem('contactRequests') || '[]')
+                    .filter(req => req.buyerEmail === userData.email);
+                const contactRequestsCount = document.getElementById('contact-requests-count');
+                if (contactRequestsCount) {
+                    contactRequestsCount.textContent = contactRequests.length;
+                }
+                
+                // Update messages count
+                const messages = JSON.parse(localStorage.getItem('messages') || '[]')
+                    .filter(msg => msg.recipientEmail === userData.email && !msg.read);
+                const newMessagesCount = document.getElementById('new-messages-count');
+                if (newMessagesCount) {
+                    newMessagesCount.textContent = messages.length;
+                }
+            }
+            
+            // Listen for changes in the saved properties
+            window.addEventListener('storage', function(e) {
+                console.log('Storage event detected:', e.key);
+                if (e.key === 'savedProperties' || e.key === 'notifications' || 
+                    e.key === 'contactRequests' || e.key === 'messages' ||
+                    e.key === 'properties') {
+                    updateDashboardStats();
+                    if (e.key === 'savedProperties') {
+                        updateSavedPropertiesList();
+                    }
+                }
+            });
+            
+            // Initial load of saved properties
+            updateSavedPropertiesList();
+        });
+        
+        // Simple function to get time ago string
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+            
+            if (diffSec < 60) {
+                return 'just now';
+            } else if (diffMin < 60) {
+                return `${diffMin} minute${diffMin > 1 ? 's' : ''} ago`;
+            } else if (diffHour < 24) {
+                return `${diffHour} hour${diffHour > 1 ? 's' : ''} ago`;
+            } else if (diffDay < 7) {
+                return `${diffDay} day${diffDay > 1 ? 's' : ''} ago`;
+            } else {
+                return date.toLocaleDateString();
+            }
+        }
+    </script>
+</body>
+</html> 

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropertyHub - Business Real Estate in Bangladesh</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <h1>PropertyHub</h1>
+            <p>Premium Real Estate in Bangladesh</p>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="pages/properties.html">Properties</a></li>
+                <li><a href="pages/login.html">Login</a></li>
+                <li><a href="pages/register.html">Register</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <div class="hero-content">
+            <h2>Find Your Perfect Property</h2>
+            <p>Discover premium commercial and residential spaces across Bangladesh</p>
+            <a href="pages/properties.html" class="btn">Explore Properties</a>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="feature">
+            <div class="feature-icon">🏢</div>
+            <h3>Commercial Spaces</h3>
+            <p>Find office spaces, retail locations, and industrial properties</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">🏠</div>
+            <h3>Residential Properties</h3>
+            <p>Discover apartments, condominiums, and homes for families</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">📝</div>
+            <h3>Verified Listings</h3>
+            <p>All properties come with verified documents and clear ownership</p>
+        </div>
+    </section>
+
+    <section class="about-us">
+        <div class="about-us-container">
+            <div class="about-us-image">
+                <img src="../images/Property.png" alt="PropertyHub Team" onerror="this.src='images/property1.jpg'; this.onerror=null;">
+            </div>
+            <div class="about-us-content">
+                <h2>About PropertyHub</h2>
+                <p>
+                    Founded in 2025, PropertyHub is Bangladesh's premier platform for both commercial and residential real estate. 
+                    We connect property sellers, buyers, and investors in a transparent and efficient marketplace.
+                </p>
+                <p>
+                    Our mission is to simplify property transactions in Bangladesh by providing verified listings, 
+                    comprehensive property information, and a user-friendly platform that helps people find their ideal spaces,
+                    whether for business or living.
+                </p>
+                <p>
+                    With a dedicated team of real estate professionals and technology experts, we're committed to 
+                    delivering the highest quality service and the most accurate property information to our users.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="featured-properties">
+        <h2>Featured Properties</h2>
+        <div class="property-grid" id="featured-properties-grid">
+            <!-- Featured properties will be loaded dynamically -->
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="cta-content">
+            <h2>Sell Your Property</h2>
+            <p>Join our network of trusted sellers and reach thousands of potential buyers and renters</p>
+            <a href="pages/register.html" class="btn">Register as Seller</a>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>PropertyHub</h3>
+                <p>Your trusted platform for business real estate in Bangladesh.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="pages/properties.html">Properties</a></li>
+                    <li><a href="pages/login.html">Login</a></li>
+                    <li><a href="pages/register.html">Register</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Email: info@propertyhub.bd</p>
+                <p>Phone: +880 1873039930</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 PropertyHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load featured properties
+            loadFeaturedProperties();
+        });
+        
+        // Load featured properties from localStorage
+        function loadFeaturedProperties() {
+            const featuredGrid = document.getElementById('featured-properties-grid');
+            if (!featuredGrid) return;
+            
+            // Get properties from localStorage
+            const properties = JSON.parse(localStorage.getItem('properties') || '[]');
+            
+            // Filter to approved properties marked as featured
+            const featuredProperties = properties.filter(p => p.status === 'approved' && p.featured === true);
+            
+            if (featuredProperties.length === 0) {
+                featuredGrid.innerHTML = `
+                    <div style="grid-column: span 3; text-align: center; padding: 30px;">
+                        <p>No featured properties available at the moment.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Clear the grid
+            featuredGrid.innerHTML = '';
+            
+            // Add featured properties to the grid (limit to 3)
+            featuredProperties.slice(0, 3).forEach(property => {
+                // Determine the price display based on listing type
+                let priceDisplay = '';
+                if (property.listingType === 'rent') {
+                    priceDisplay = `৳${Number(property.rent).toLocaleString()}/month`;
+                } else {
+                    priceDisplay = `৳${Number(property.price).toLocaleString()}`;
+                }
+                
+                // Create property card - simplified for homepage without booking options
+                const propertyCard = document.createElement('div');
+                propertyCard.className = 'property-card';
+                
+                // Determine image to use
+                let imageUrl = 'images/property1.jpg'; // Default image
+                if (property.images && property.images.length > 0) {
+                    imageUrl = property.images[0].content;
+                } else {
+                    // Choose default image based on property type
+                    if (property.type === 'apartment' || property.type === 'condo') {
+                        imageUrl = 'images/property2.jpg';
+                    } else if (property.type === 'warehouse' || property.type === 'industrial') {
+                        imageUrl = 'images/property3.jpg';
+                    } else if (property.type === 'plot') {
+                        imageUrl = 'images/property4.jpg';
+                    }
+                }
+                
+                // Add metadata display for beds/baths (for non-plot properties)
+                let metaDisplay = '';
+                if (property.type !== 'plot' && (property.beds || property.baths)) {
+                    metaDisplay = `
+                        <div class="property-details-meta">
+                            ${property.beds ? `<span><strong>${property.beds}</strong> Bed${property.beds > 1 ? 's' : ''}</span>` : ''}
+                            ${property.baths ? `<span><strong>${property.baths}</strong> Bath${property.baths > 1 ? 's' : ''}</span>` : ''}
+                        </div>
+                    `;
+                }
+                
+                propertyCard.innerHTML = `
+                    <div class="property-image" style="background-image: url('${imageUrl}')"></div>
+                    <div class="property-details">
+                        <h3>${property.title}</h3>
+                        <p class="location">${property.address}, ${property.city}</p>
+                        <p class="price">${priceDisplay}</p>
+                        ${metaDisplay}
+                        <div class="property-type-tag" style="display: inline-block; margin-top: 8px; font-size: 0.8rem; background-color: #f0f0f0; padding: 2px 8px; border-radius: 4px; color: #555;">${property.type.charAt(0).toUpperCase() + property.type.slice(1)}</div>
+                        <p style="margin-top: 10px;">
+                            <a href="pages/property-details.html?id=${property.id}" class="btn-small">View Details</a>
+                        </p>
+                    </div>
+                `;
+                
+                featuredGrid.appendChild(propertyCard);
+            });
+        }
+    </script>
+</body>
+</html> 

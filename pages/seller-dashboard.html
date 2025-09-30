@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard - PropertyHub</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+            margin-right: 20px;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background-color: #e74c3c;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .notification-dropdown {
+            display: none;
+            position: absolute;
+            top: 40px;
+            right: 0;
+            background-color: white;
+            min-width: 350px;
+            max-width: 400px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            z-index: 100;
+            border-radius: 4px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .notification-header {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .notification-list {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+        
+        .notification-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .notification-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .notification-item.unread {
+            background-color: var(--primary-very-light);
+        }
+        
+        .notification-item-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .notification-item-message {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .notification-item-time {
+            font-size: 0.8rem;
+            color: #999;
+        }
+        
+        .notification-empty {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+        }
+        
+        .notification-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <h1>PropertyHub</h1>
+            <p>Premium Business Real Estate</p>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="properties.html">Properties</a></li>
+                <li><a href="#" class="active">Dashboard</a></li>
+                <li>
+                    <div class="notification-bell" id="notification-bell">
+                        <span style="font-size: 1.2rem;">🔔</span>
+                        <span class="notification-badge" id="notification-badge" style="display: none;">0</span>
+                        <div class="notification-dropdown" id="notification-dropdown">
+                            <div class="notification-header">
+                                <span>Notifications</span>
+                                <button class="btn-small" id="mark-all-read">Mark all as read</button>
+                            </div>
+                            <ul class="notification-list" id="notification-list">
+                                <!-- Notifications will be loaded here -->
+                                <li class="notification-empty">No notifications yet</li>
+                            </ul>
+                        </div>
+                    </div>
+                </li>
+                <li><a href="login.html">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="dashboard">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h3>Seller Dashboard</h3>
+                <p>John Doe</p>
+                <p>john@example.com</p>
+            </div>
+            <div class="sidebar-nav">
+                <ul>
+                    <li><a href="#" class="active">Dashboard</a></li>
+                    <li><a href="#my-properties">My Properties</a></li>
+                    <li><a href="#add-property">Add Property</a></li>
+                    <li><a href="#messages">Messages</a></li>
+                    <li><a href="#profile">Profile</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="dashboard-content">
+            <div class="dashboard-header">
+                <h2>Dashboard Overview</h2>
+                <a href="#add-property" class="btn">Add New Property</a>
+            </div>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card">
+                    <h3>Total Properties</h3>
+                    <p id="total-listings-count">3</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Active Listings</h3>
+                    <p id="active-listings-count">2</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Approval</h3>
+                    <p id="pending-listings-count">1</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Views</h3>
+                    <p>245</p>
+                </div>
+            </div>
+            
+            <h3 id="my-properties">My Properties</h3>
+            <table class="property-table">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Location</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="seller-properties">
+                    <!-- Properties will be loaded dynamically -->
+                    <tr>
+                        <td>Modern Office Space</td>
+                        <td>Gulshan, Dhaka</td>
+                        <td>৳15,000,000</td>
+                        <td>Active</td>
+                        <td>
+                            <a href="property-details.html?id=1" class="btn-small">View</a>
+                            <a href="#edit-property" class="btn-small">Edit</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Retail Store Front</td>
+                        <td>Banani, Dhaka</td>
+                        <td>৳22,500,000</td>
+                        <td>Active</td>
+                        <td>
+                            <a href="property-details.html?id=2" class="btn-small">View</a>
+                            <a href="#edit-property" class="btn-small">Edit</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Warehouse Space</td>
+                        <td>Chittagong Port</td>
+                        <td>৳35,000,000</td>
+                        <td>Pending Approval</td>
+                        <td>
+                            <a href="property-details.html?id=3" class="btn-small">View</a>
+                            <a href="#edit-property" class="btn-small">Edit</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="sort-group" style="margin-top: 20px; text-align: right;">
+                <select class="form-control" id="seller-property-sort">
+                    <option value="newest">Newest First</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="area-asc">Area: Small to Large</option>
+                </select>
+            </div>
+            
+            <div id="add-property" style="margin-top: 50px;">
+                <h3>Add New Property</h3>
+                <p style="margin-bottom: 20px; color: #666;">Complete the form below to add a new property. You can upload multiple property images to showcase your listing.</p>
+                <form id="property-form" class="auth-form" style="max-width: 800px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div class="form-group">
+                            <label for="property-title">Property Title</label>
+                            <input type="text" id="property-title" name="title" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="property-type">Property Type</label>
+                            <select id="property-type" name="type" class="form-control" required>
+                                <option value="">Select Type</option>
+                                <option value="office">Office Space</option>
+                                <option value="retail">Retail Space</option>
+                                <option value="warehouse">Warehouse</option>
+                                <option value="industrial">Industrial Property</option>
+                                <option value="condo">Condominium</option>
+                                <option value="apartment">Apartment</option>
+                                <option value="plot">Plot for Sale</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="listing-type">Listing Type</label>
+                            <select id="listing-type" name="listing-type" class="form-control" required>
+                                <option value="">Select Type</option>
+                                <option value="sale">For Sale</option>
+                                <option value="rent">For Rent</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group sale-field">
+                            <label for="property-price">Price (৳)</label>
+                            <input type="number" id="property-price" name="price" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group rent-field" style="display: none;">
+                            <label for="property-rent">Rent per Month (৳)</label>
+                            <input type="number" id="property-rent" name="rent" class="form-control">
+                        </div>
+                        
+                        <div class="form-group rent-field" style="display: none;">
+                            <label for="property-service-charge">Service Charge (৳)</label>
+                            <input type="number" id="property-service-charge" name="service-charge" class="form-control">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="property-area">Area (sq. ft)</label>
+                            <input type="number" id="property-area" name="area" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group property-beds-field">
+                            <label for="property-beds">Bedrooms</label>
+                            <input type="number" id="property-beds" name="beds" class="form-control" min="0">
+                        </div>
+                        
+                        <div class="form-group property-baths-field">
+                            <label for="property-baths">Bathrooms</label>
+                            <input type="number" id="property-baths" name="baths" class="form-control" min="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="property-address">Address</label>
+                            <input type="text" id="property-address" name="address" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="property-city">City</label>
+                            <input type="text" id="property-city" name="city" class="form-control" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="property-description">Description</label>
+                        <textarea id="property-description" name="description" class="form-control" rows="5" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Features</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                            <label><input type="checkbox" name="features[]" value="parking"> Parking</label>
+                            <label><input type="checkbox" name="features[]" value="security"> 24/7 Security</label>
+                            <label><input type="checkbox" name="features[]" value="elevator"> Elevator</label>
+                            <label><input type="checkbox" name="features[]" value="ac"> Air Conditioning</label>
+                            <label><input type="checkbox" name="features[]" value="reception"> Reception Area</label>
+                            <label><input type="checkbox" name="features[]" value="internet"> High-Speed Internet</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Nearby Amenities</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                            <label><input type="checkbox" name="amenities[]" value="convenience_store"> Convenience Store</label>
+                            <label><input type="checkbox" name="amenities[]" value="market"> Market</label>
+                            <label><input type="checkbox" name="amenities[]" value="supershop"> Supershop</label>
+                            <label><input type="checkbox" name="amenities[]" value="mosque"> Mosque</label>
+                            <label><input type="checkbox" name="amenities[]" value="school"> School</label>
+                            <label><input type="checkbox" name="amenities[]" value="college"> College</label>
+                            <label><input type="checkbox" name="amenities[]" value="university"> University</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Property Location on Map</label>
+                        <div id="property-map" data-lat="23.8103" data-lng="90.4125" style="height: 300px; margin-top: 10px; border-radius: 4px;"></div>
+                        <input type="hidden" id="property-lat" name="lat" value="23.8103">
+                        <input type="hidden" id="property-lng" name="lng" value="90.4125">
+                        <p style="margin-top: 5px; font-size: 0.9rem; color: #666;">Click on the map to set the exact location</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="property-images">Upload Images</label>
+                        <input type="file" id="property-images" name="images[]" class="form-control" multiple accept="image/*">
+                        <p style="margin-top: 5px; font-size: 0.9rem; color: #666;">Select multiple images by holding Ctrl (or Cmd on Mac) while clicking, or by dragging multiple files at once.</p>
+                        <div id="image-preview-container" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px;"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="property-papers">Upload Property Papers</label>
+                        <input type="file" id="property-papers" name="papers[]" class="form-control" multiple accept=".pdf,.doc,.docx">
+                        <p style="margin-top: 5px; font-size: 0.9rem; color: #666;">Upload all relevant legal documents (PDF, DOC)</p>
+                    </div>
+                    
+                    <button type="submit" class="form-submit">Submit Property</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>PropertyHub</h3>
+                <p>Your trusted platform for business real estate in Bangladesh.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="properties.html">Properties</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Email: info@propertyhub.bd</p>
+                <p>Phone: +880 123 456 7890</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2023 PropertyHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        // Load seller properties
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load properties and stats for seller dashboard
+            loadSellerProperties();
+            updateSellerStats();
+            
+            // Add functionality for profile and messages in seller dashboard
+            document.querySelectorAll('.sidebar-nav a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (this.getAttribute('href') === '#profile') {
+                        e.preventDefault();
+                        showSellerProfile();
+                    } else if (this.getAttribute('href') === '#messages') {
+                        e.preventDefault();
+                        showSellerMessages();
+                    } else if (this.getAttribute('href') === '#my-properties') {
+                        e.preventDefault();
+                        // Show main dashboard
+                        hideAllSellerSections();
+                        showSellerDashboard();
+                    }
+                });
+            });
+            
+            // Handle listing type change
+            const listingTypeSelect = document.getElementById('listing-type');
+            if (listingTypeSelect) {
+                listingTypeSelect.addEventListener('change', function() {
+                    const saleFields = document.querySelectorAll('.sale-field');
+                    const rentFields = document.querySelectorAll('.rent-field');
+                    
+                    if (this.value === 'rent') {
+                        // Show rent fields, hide sale fields
+                        saleFields.forEach(field => field.style.display = 'none');
+                        rentFields.forEach(field => field.style.display = 'block');
+                        
+                        // Make rent field required, price field not required
+                        document.getElementById('property-rent').setAttribute('required', 'required');
+                        document.getElementById('property-price').removeAttribute('required');
+                    } else {
+                        // Show sale fields, hide rent fields
+                        saleFields.forEach(field => field.style.display = 'block');
+                        rentFields.forEach(field => field.style.display = 'none');
+                        
+                        // Make price field required, rent field not required
+                        document.getElementById('property-price').setAttribute('required', 'required');
+                        document.getElementById('property-rent').removeAttribute('required');
+                    }
+                });
+            }
+        });
+
+        // Show main seller dashboard
+        function showSellerDashboard() {
+            document.querySelector('.dashboard-header h2').textContent = 'Dashboard Overview';
+            
+            // Show the stats and properties table
+            document.querySelector('.dashboard-stats').style.display = 'grid';
+            document.querySelector('#my-properties').style.display = 'block';
+            document.querySelector('.property-table').style.display = 'table';
+            document.querySelector('#add-property').style.display = 'block';
+            
+            // Highlight the active nav item
+            document.querySelectorAll('.sidebar-nav a').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#my-properties') {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Hide all custom sections in seller dashboard
+        function hideAllSellerSections() {
+            const sections = ['#profile-section', '#messages-section'];
+            
+            sections.forEach(section => {
+                const element = document.querySelector(section);
+                if (element) {
+                    element.remove();
+                }
+            });
+        }
+
+        // Show seller profile section
+        function showSellerProfile() {
+            // Hide all sections
+            hideAllSellerSections();
+            
+            // Hide default dashboard content
+            document.querySelector('.dashboard-stats').style.display = 'none';
+            document.querySelector('#my-properties').style.display = 'none';
+            document.querySelector('.property-table').style.display = 'none';
+            document.querySelector('#add-property').style.display = 'none';
+            
+            // Update page header
+            document.querySelector('.dashboard-header h2').textContent = 'My Profile';
+            
+            // Get the dashboard content area
+            const dashboardContent = document.querySelector('.dashboard-content');
+            
+            // Get user data
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            const user = registeredUsers.find(u => u.email === userData.email);
+            
+            // Create profile section
+            const profileSection = document.createElement('div');
+            profileSection.id = 'profile-section';
+            
+            // Create profile form
+            profileSection.innerHTML = `
+                <form id="profile-form" class="auth-form" style="max-width: 600px; margin: 0 auto;">
+                    <div class="form-group">
+                        <label for="profile-name">Full Name</label>
+                        <input type="text" id="profile-name" name="name" class="form-control" value="${user?.name || ''}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profile-email">Email</label>
+                        <input type="email" id="profile-email" name="email" class="form-control" value="${user?.email || ''}" disabled>
+                        <p style="margin-top: 5px; font-size: 0.85rem; color: #666;">Email cannot be changed</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profile-phone">Phone Number</label>
+                        <input type="tel" id="profile-phone" name="phone" class="form-control" value="${user?.phone || ''}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profile-password">New Password (leave blank to keep current)</label>
+                        <input type="password" id="profile-password" name="password" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="profile-confirm-password">Confirm New Password</label>
+                        <input type="password" id="profile-confirm-password" name="confirm-password" class="form-control">
+                    </div>
+                    
+                    <button type="submit" class="form-submit">Update Profile</button>
+                </form>
+            `;
+            
+            // Add profile section to dashboard content
+            dashboardContent.appendChild(profileSection);
+            
+            // Handle profile form submission
+            const profileForm = document.getElementById('profile-form');
+            profileForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                updateUserProfile(this);
+            });
+            
+            // Highlight the active nav item
+            document.querySelectorAll('.sidebar-nav a').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#profile') {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Show seller messages section
+        function showSellerMessages() {
+            // Hide all sections
+            hideAllSellerSections();
+            
+            // Hide default dashboard content
+            document.querySelector('.dashboard-stats').style.display = 'none';
+            document.querySelector('#my-properties').style.display = 'none';
+            document.querySelector('.property-table').style.display = 'none';
+            document.querySelector('#add-property').style.display = 'none';
+            
+            // Update page header
+            document.querySelector('.dashboard-header h2').textContent = 'My Messages';
+            
+            // Get the dashboard content area
+            const dashboardContent = document.querySelector('.dashboard-content');
+            
+            // Create messages section
+            const messagesSection = document.createElement('div');
+            messagesSection.id = 'messages-section';
+            
+            // Get user data
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            
+            // Get messages for this user
+            const messages = JSON.parse(localStorage.getItem('messages') || '[]');
+            const userMessages = messages.filter(msg => msg.recipientEmail === userData.email);
+            
+            if (userMessages.length === 0) {
+                messagesSection.innerHTML = `
+                    <div style="text-align: center; margin-top: 50px;">
+                        <h3>No Messages</h3>
+                        <p>You don't have any messages from potential buyers yet.</p>
+                    </div>
+                `;
+            } else {
+                // Create messages list
+                const messagesList = document.createElement('div');
+                messagesList.className = 'messages-list';
+                
+                userMessages.forEach(message => {
+                    const messageCard = document.createElement('div');
+                    messageCard.className = 'message-card';
+                    messageCard.style.backgroundColor = 'white';
+                    messageCard.style.padding = '20px';
+                    messageCard.style.borderRadius = '8px';
+                    messageCard.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+                    messageCard.style.marginBottom = '20px';
+                    
+                    messageCard.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <div>
+                                <strong>From:</strong> ${message.senderName} (${message.senderEmail})
+                            </div>
+                            <div style="color: #666; font-size: 0.9rem;">
+                                ${new Date(message.createdAt).toLocaleString()}
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <strong>Subject:</strong> ${message.subject}
+                        </div>
+                        <div style="margin-bottom: 15px; padding: 10px; background-color: #f9f9f9; border-radius: 4px;">
+                            ${message.message}
+                        </div>
+                        <button class="btn-small delete-message" data-id="${message.id}">Delete</button>
+                        <button class="btn-small reply-message" data-email="${message.senderEmail}" data-name="${message.senderName}" data-subject="RE: ${message.subject}">Reply</button>
+                    `;
+                    
+                    messagesList.appendChild(messageCard);
+                });
+                
+                messagesSection.appendChild(messagesList);
+            }
+            
+            // Add messages section to dashboard content
+            dashboardContent.appendChild(messagesSection);
+            
+            // Add delete message functionality
+            const deleteButtons = document.querySelectorAll('.delete-message');
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const messageId = this.dataset.id;
+                    deleteMessage(messageId);
+                });
+            });
+
+            // Add reply message functionality
+            const replyButtons = document.querySelectorAll('.reply-message');
+            replyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const recipientEmail = this.dataset.email;
+                    const recipientName = this.dataset.name;
+                    const subject = this.dataset.subject;
+                    showReplyForm(recipientEmail, recipientName, subject);
+                });
+            });
+            
+            // Highlight the active nav item
+            document.querySelectorAll('.sidebar-nav a').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#messages') {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        // Show reply form in a modal
+        function showReplyForm(recipientEmail, recipientName, subject) {
+            // Create modal container
+            const modalContainer = document.createElement('div');
+            modalContainer.className = 'modal-container';
+            modalContainer.style.position = 'fixed';
+            modalContainer.style.top = '0';
+            modalContainer.style.left = '0';
+            modalContainer.style.width = '100%';
+            modalContainer.style.height = '100%';
+            modalContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            modalContainer.style.display = 'flex';
+            modalContainer.style.justifyContent = 'center';
+            modalContainer.style.alignItems = 'center';
+            modalContainer.style.zIndex = '1000';
+            
+            // Create modal content
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            modalContent.style.backgroundColor = 'white';
+            modalContent.style.padding = '30px';
+            modalContent.style.borderRadius = '8px';
+            modalContent.style.width = '80%';
+            modalContent.style.maxWidth = '700px';
+            modalContent.style.maxHeight = '90vh';
+            modalContent.style.overflowY = 'auto';
+            modalContent.style.position = 'relative';
+            
+            // Add close button
+            const closeButton = document.createElement('button');
+            closeButton.textContent = '×';
+            closeButton.style.position = 'absolute';
+            closeButton.style.top = '10px';
+            closeButton.style.right = '15px';
+            closeButton.style.border = 'none';
+            closeButton.style.background = 'none';
+            closeButton.style.fontSize = '24px';
+            closeButton.style.cursor = 'pointer';
+            closeButton.addEventListener('click', () => {
+                document.body.removeChild(modalContainer);
+            });
+            
+            // Create reply form
+            const formContent = `
+                <h2 style="margin-bottom: 20px; color: var(--primary-color);">Reply to ${recipientName}</h2>
+                <form id="reply-form" class="auth-form" style="max-width: 100%;">
+                    <div class="form-group">
+                        <label for="reply-to">To:</label>
+                        <input type="email" id="reply-to" name="to" class="form-control" value="${recipientEmail}" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reply-subject">Subject:</label>
+                        <input type="text" id="reply-subject" name="subject" class="form-control" value="${subject}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reply-message">Message:</label>
+                        <textarea id="reply-message" name="message" class="form-control" rows="6" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="form-submit">Send Message</button>
+                </form>
+            `;
+            
+            modalContent.innerHTML = formContent;
+            modalContent.appendChild(closeButton);
+            modalContainer.appendChild(modalContent);
+            document.body.appendChild(modalContainer);
+            
+            // Handle form submission
+            const replyForm = document.getElementById('reply-form');
+            replyForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                sendReplyMessage(this, recipientEmail, recipientName);
+            });
+        }
+
+        // Send reply message
+        function sendReplyMessage(form, recipientEmail, recipientName) {
+            const subject = form.querySelector('#reply-subject').value;
+            const message = form.querySelector('#reply-message').value;
+            
+            // Get user data
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            
+            // Create message object
+            const messageData = {
+                id: 'msg_' + Date.now(),
+                recipientEmail: recipientEmail,
+                recipientName: recipientName,
+                subject,
+                message,
+                senderEmail: userData.email,
+                senderName: userData.name,
+                senderPhone: '',
+                createdAt: new Date().toISOString(),
+                read: false
+            };
+            
+            // Save message to localStorage
+            const messages = JSON.parse(localStorage.getItem('messages') || '[]');
+            messages.push(messageData);
+            localStorage.setItem('messages', JSON.stringify(messages));
+            
+            // Close modal
+            const modalContainer = document.querySelector('.modal-container');
+            if (modalContainer) {
+                document.body.removeChild(modalContainer);
+            }
+            
+            alert('Message sent successfully!');
+        }
+
+        // Update seller dashboard stats
+        function updateSellerStats() {
+            // Get user data
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            if (!userData.email) return;
+            
+            // Get all properties by this seller
+            const properties = JSON.parse(localStorage.getItem('properties') || '[]');
+            const sellerProperties = properties.filter(prop => prop.seller && prop.seller.email === userData.email);
+            
+            // Update counts
+            document.getElementById('total-listings-count').textContent = sellerProperties.length;
+            document.getElementById('active-listings-count').textContent = sellerProperties.filter(p => p.status === 'approved').length;
+            document.getElementById('pending-listings-count').textContent = sellerProperties.filter(p => p.status === 'pending').length;
+        }
+    </script>
+    <style>
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .status-badge.approved {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .status-badge.pending {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+        .status-badge.rejected {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .messages-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+    </style>
+    <!-- Fix for edit and delete buttons -->
+    <script>
+        // Ensure edit and delete buttons work on page load
+        window.addEventListener('load', function() {
+            // This ensures our listeners are added once the page is fully loaded
+            if (typeof addPropertyActionListeners === 'function') {
+                setTimeout(function() {
+                    addPropertyActionListeners();
+                    console.log('Added listeners to property action buttons');
+                }, 1000);
+            }
+        });
+    </script>
+</body>
+</html> 

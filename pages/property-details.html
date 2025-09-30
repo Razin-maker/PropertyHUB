@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Details - PropertyHub</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 600px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        
+        .booking-actions {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        /* Date picker styling */
+        .date-picker-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .date-picker-container .form-group {
+            flex: 1;
+        }
+        
+        /* Enhanced Gallery Styling */
+        .property-gallery {
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .property-main-image {
+            height: 400px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .property-main-image::before {
+            content: '🔍';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.8);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+        }
+        
+        .property-thumbnails {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 5px 0;
+            scrollbar-width: thin;
+        }
+        
+        .property-thumbnail {
+            width: 120px;
+            height: 80px;
+            flex-shrink: 0;
+            background-size: cover;
+            background-position: center;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .property-thumbnail:hover {
+            transform: scale(1.05);
+            border: 2px solid var(--primary-color);
+        }
+        
+        .property-thumbnail.active {
+            border: 2px solid var(--primary-color);
+        }
+        
+        /* Fullscreen Image Modal */
+        .fullscreen-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .fullscreen-image {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+        }
+        
+        .fullscreen-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .fullscreen-nav {
+            position: absolute;
+            color: white;
+            font-size: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .fullscreen-prev {
+            left: 20px;
+        }
+        
+        .fullscreen-next {
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-container">
+            <h1>PropertyHub</h1>
+            <p>Premium Business Real Estate</p>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+                <li><a href="properties.html" class="active">Properties</a></li>
+                <li><a href="login.html" id="login-nav">Login</a></li>
+                <li><a href="register.html" id="register-nav">Register</a></li>
+                <li><a href="buyer-dashboard.html" id="dashboard-nav" style="display: none;">Dashboard</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="property-details-page">
+        <div class="property-header">
+            <div class="property-title">
+                <h1>Loading Property...</h1>
+                <p class="location">Please wait</p>
+            </div>
+            <div class="property-price">
+                Loading...
+            </div>
+        </div>
+        
+        <div class="booking-actions">
+            <button id="book-property" class="btn-small" style="background-color: #e74c3c;">
+                <span style="margin-right: 5px;">📅</span> Book Property
+            </button>
+            <button id="schedule-visit" class="btn-small" style="background-color: #3498db;">
+                <span style="margin-right: 5px;">👁️</span> Schedule Visit
+            </button>
+        </div>
+        
+        <div class="property-gallery">
+            <div class="property-main-image" style="background-image: url('../images/property1.jpg')"></div>
+            <div class="property-thumbnails">
+                <!-- Thumbnails will be loaded dynamically -->
+            </div>
+        </div>
+        
+        <div class="property-info">
+            <div class="property-description">
+                <h2>Property Description</h2>
+                <p id="property-description-text">Loading property description...</p>
+                
+                <div class="property-features">
+                    <h3>Features & Amenities</h3>
+                    <ul class="features-list" id="property-features-list">
+                        <!-- Features will be loaded dynamically -->
+                    </ul>
+                </div>
+                
+                <div class="property-documents" style="margin-top: 30px;">
+                    <h3>Property Documents</h3>
+                    <p>The following legal documents are available for this property:</p>
+                    <ul id="property-documents-list">
+                        <li><a href="#" onclick="alert('In a real application, this would download the deed document.'); return false;">Property Deed</a></li>
+                        <li><a href="#" onclick="alert('In a real application, this would download the tax document.'); return false;">Tax Clearance Certificate</a></li>
+                        <li><a href="#" onclick="alert('In a real application, this would download the floor plan.'); return false;">Floor Plan</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="property-sidebar">
+                <h3>Contact Seller</h3>
+                <p>Fill out the form below to contact the property owner directly.</p>
+                
+                <form class="property-contact-form" onsubmit="return sendEmail(event, this)" data-email="seller@example.com">
+                    <div class="form-group">
+                        <label for="name">Your Name</label>
+                        <input type="text" id="name" name="name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Your Email</label>
+                        <input type="email" id="email" name="email" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input type="tel" id="phone" name="phone" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <input type="text" id="subject" name="subject" class="form-control" value="Inquiry about property" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">Your Message</label>
+                        <textarea id="message" name="message" class="form-control" rows="4" required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="form-submit">Send Message</button>
+                </form>
+            </div>
+        </div>
+        
+        <h3>Property Location</h3>
+        <div class="location-actions" style="margin-bottom: 15px;">
+            <button id="get-directions" class="btn-small" style="background-color: #4285F4;">
+                <span style="margin-right: 5px;">📍</span> Get Directions
+            </button>
+        </div>
+        <div id="property-map" data-lat="23.8103" data-lng="90.4125" data-title="Property Location" class="property-map"></div>
+    </div>
+
+    <!-- Booking Modal -->
+    <div id="booking-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Book This Property</h2>
+            <p>Complete the form below to book this property</p>
+            
+            <form id="booking-form" class="property-contact-form">
+                <div class="form-group">
+                    <label for="booking-name">Your Name</label>
+                    <input type="text" id="booking-name" name="name" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="booking-email">Your Email</label>
+                    <input type="email" id="booking-email" name="email" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="booking-phone">Phone Number</label>
+                    <input type="tel" id="booking-phone" name="phone" class="form-control" required>
+                </div>
+                
+                <div class="date-picker-container">
+                    <div class="form-group">
+                        <label for="booking-start-date">Start Date</label>
+                        <input type="date" id="booking-start-date" name="startDate" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="booking-end-date">End Date</label>
+                        <input type="date" id="booking-end-date" name="endDate" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="booking-guests">Number of Occupants</label>
+                    <input type="number" id="booking-guests" name="guests" class="form-control" min="1" value="1" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="booking-notes">Special Requests</label>
+                    <textarea id="booking-notes" name="notes" class="form-control" rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="form-submit">Submit Booking</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Visit Schedule Modal -->
+    <div id="visit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Schedule a Visit</h2>
+            <p>Select a date and time to visit this property</p>
+            
+            <form id="visit-form" class="property-contact-form">
+                <div class="form-group">
+                    <label for="visit-name">Your Name</label>
+                    <input type="text" id="visit-name" name="name" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="visit-email">Your Email</label>
+                    <input type="email" id="visit-email" name="email" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="visit-phone">Phone Number</label>
+                    <input type="tel" id="visit-phone" name="phone" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="visit-date">Preferred Date</label>
+                    <input type="date" id="visit-date" name="visitDate" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="visit-time">Preferred Time</label>
+                    <input type="time" id="visit-time" name="visitTime" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="visit-notes">Additional Notes</label>
+                    <textarea id="visit-notes" name="notes" class="form-control" rows="3"></textarea>
+                </div>
+                
+                <button type="submit" class="form-submit">Schedule Visit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add fullscreen image viewer modal at the end of the body -->
+    <div class="fullscreen-modal" id="fullscreen-modal">
+        <span class="fullscreen-close">&times;</span>
+        <span class="fullscreen-nav fullscreen-prev">&#10094;</span>
+        <img class="fullscreen-image" id="fullscreen-image" src="" alt="Property Image">
+        <span class="fullscreen-nav fullscreen-next">&#10095;</span>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>PropertyHub</h3>
+                <p>Your trusted platform for business real estate in Bangladesh.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul>
+                    <li><a href="../index.html">Home</a></li>
+                    <li><a href="properties.html">Properties</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="register.html">Register</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Contact Us</h3>
+                <p>Email: info@propertyhub.bd</p>
+                <p>Phone: +880 1873039930</p>
+            </div>
+        </div>
+        <div class="copyright">
+            <p>&copy; 2025 PropertyHub. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="../js/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            if (userData.email) {
+                // User is logged in
+                document.getElementById('login-nav').style.display = 'none';
+                document.getElementById('register-nav').style.display = 'none';
+                document.getElementById('dashboard-nav').style.display = 'block';
+            }
+            
+            // Get the directions button
+            const directionsButton = document.getElementById('get-directions');
+            
+            if (directionsButton) {
+                directionsButton.addEventListener('click', function() {
+                    // Get property coordinates from the map element
+                    const mapElement = document.getElementById('property-map');
+                    const lat = mapElement.dataset.lat;
+                    const lng = mapElement.dataset.lng;
+                    const title = mapElement.dataset.title;
+                    
+                    // Create Google Maps directions URL
+                    const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodeURIComponent(title)}`;
+                    
+                    // Open Google Maps in a new tab
+                    window.open(googleMapsUrl, '_blank');
+                });
+            }
+            
+            // Booking modal functionality
+            const bookingModal = document.getElementById('booking-modal');
+            const bookingBtn = document.getElementById('book-property');
+            const visitModal = document.getElementById('visit-modal');
+            const visitBtn = document.getElementById('schedule-visit');
+            const closeButtons = document.querySelectorAll('.close');
+            
+            // Set today as the minimum date for date inputs
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('booking-start-date').min = today;
+            document.getElementById('booking-end-date').min = today;
+            document.getElementById('visit-date').min = today;
+            
+            // Book button click
+            if (bookingBtn) {
+                bookingBtn.addEventListener('click', function() {
+                    // Check if user is logged in
+                    if (!userData.email) {
+                        alert('Please log in to book this property');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    
+                    // Pre-fill form with user data
+                    document.getElementById('booking-name').value = userData.name || '';
+                    document.getElementById('booking-email').value = userData.email || '';
+                    document.getElementById('booking-phone').value = userData.phone || '';
+                    
+                    bookingModal.style.display = 'block';
+                });
+            }
+            
+            // Schedule visit button click
+            if (visitBtn) {
+                visitBtn.addEventListener('click', function() {
+                    // Check if user is logged in
+                    if (!userData.email) {
+                        alert('Please log in to schedule a visit');
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    
+                    // Pre-fill form with user data
+                    document.getElementById('visit-name').value = userData.name || '';
+                    document.getElementById('visit-email').value = userData.email || '';
+                    document.getElementById('visit-phone').value = userData.phone || '';
+                    
+                    visitModal.style.display = 'block';
+                });
+            }
+            
+            // Close button click
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    bookingModal.style.display = 'none';
+                    visitModal.style.display = 'none';
+                });
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target == bookingModal) {
+                    bookingModal.style.display = 'none';
+                }
+                if (event.target == visitModal) {
+                    visitModal.style.display = 'none';
+                }
+            });
+            
+            // Handle booking form submission
+            const bookingForm = document.getElementById('booking-form');
+            if (bookingForm) {
+                bookingForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    submitBooking(this);
+                });
+            }
+            
+            // Handle visit form submission
+            const visitForm = document.getElementById('visit-form');
+            if (visitForm) {
+                visitForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    submitVisit(this);
+                });
+            }
+            
+            // Validate booking dates
+            const startDateInput = document.getElementById('booking-start-date');
+            const endDateInput = document.getElementById('booking-end-date');
+            
+            if (startDateInput && endDateInput) {
+                startDateInput.addEventListener('change', function() {
+                    // Set minimum end date to be the start date
+                    endDateInput.min = startDateInput.value;
+                    
+                    // If end date is before start date, update it
+                    if (endDateInput.value && endDateInput.value < startDateInput.value) {
+                        endDateInput.value = startDateInput.value;
+                    }
+                });
+            }
+        });
+        
+        // Submit booking function
+        function submitBooking(form) {
+            // Get property ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const propertyId = urlParams.get('id');
+            
+            if (!propertyId) {
+                alert('Property ID not found');
+                return;
+            }
+            
+            // Get property details to include property title in confirmation
+            const properties = JSON.parse(localStorage.getItem('properties') || '[]');
+            const property = properties.find(prop => prop.id === propertyId);
+            const propertyTitle = property ? property.title : 'this property';
+            
+            // Get form data
+            const formData = new FormData(form);
+            const bookingData = {
+                id: 'booking_' + Date.now(),
+                propertyId: propertyId,
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                startDate: formData.get('startDate'),
+                endDate: formData.get('endDate'),
+                guests: formData.get('guests'),
+                notes: formData.get('notes'),
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                type: 'booking'
+            };
+            
+            // Store booking in localStorage
+            const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+            bookings.push(bookingData);
+            localStorage.setItem('bookings', JSON.stringify(bookings));
+            
+            // Create a notification for the property seller
+            if (property && property.seller && property.seller.email) {
+                createNotification(
+                    property.seller.email,
+                    'New Booking Request',
+                    `${bookingData.name} has requested to book "${propertyTitle}" from ${new Date(bookingData.startDate).toLocaleDateString()} to ${new Date(bookingData.endDate).toLocaleDateString()}.`,
+                    'booking',
+                    bookingData.id
+                );
+            }
+            
+            // Close modal and show success message
+            document.getElementById('booking-modal').style.display = 'none';
+            alert(`Booking for ${propertyTitle} submitted successfully! The property owner will contact you shortly.`);
+            
+            // Clear form
+            form.reset();
+        }
+        
+        // Submit visit function
+        function submitVisit(form) {
+            // Get property ID from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const propertyId = urlParams.get('id');
+            
+            if (!propertyId) {
+                alert('Property ID not found');
+                return;
+            }
+            
+            // Get property details to include property title in confirmation
+            const properties = JSON.parse(localStorage.getItem('properties') || '[]');
+            const property = properties.find(prop => prop.id === propertyId);
+            const propertyTitle = property ? property.title : 'this property';
+            
+            // Get form data
+            const formData = new FormData(form);
+            const visitData = {
+                id: 'visit_' + Date.now(),
+                propertyId: propertyId,
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                visitDate: formData.get('visitDate'),
+                visitTime: formData.get('visitTime'),
+                notes: formData.get('notes'),
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                type: 'visit'
+            };
+            
+            // Store visit in localStorage
+            const visits = JSON.parse(localStorage.getItem('visits') || '[]');
+            visits.push(visitData);
+            localStorage.setItem('visits', JSON.stringify(visits));
+            
+            // Create a notification for the property seller
+            if (property && property.seller && property.seller.email) {
+                createNotification(
+                    property.seller.email,
+                    'New Visit Request',
+                    `${visitData.name} has requested to visit "${propertyTitle}" on ${new Date(visitData.visitDate).toLocaleDateString()} at ${visitData.visitTime}.`,
+                    'visit',
+                    visitData.id
+                );
+            }
+            
+            // Close modal and show success message
+            document.getElementById('visit-modal').style.display = 'none';
+            alert(`Visit to ${propertyTitle} scheduled successfully! The property owner will confirm your appointment shortly.`);
+            
+            // Clear form
+            form.reset();
+        }
+        
+        // Function to create a notification
+        function createNotification(recipientEmail, title, message, type, referenceId) {
+            const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+            
+            notifications.push({
+                id: 'notif_' + Date.now(),
+                recipientEmail: recipientEmail,
+                title: title,
+                message: message,
+                type: type,
+                referenceId: referenceId,
+                createdAt: new Date().toISOString(),
+                read: false
+            });
+            
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+        }
+
+        // Initialize fullscreen gallery
+        document.addEventListener('DOMContentLoaded', function() {
+            const fullscreenModal = document.getElementById('fullscreen-modal');
+            const fullscreenImage = document.getElementById('fullscreen-image');
+            const fullscreenClose = document.querySelector('.fullscreen-close');
+            const fullscreenPrev = document.querySelector('.fullscreen-prev');
+            const fullscreenNext = document.querySelector('.fullscreen-next');
+            const mainImage = document.querySelector('.property-main-image');
+            
+            let imageUrls = [];
+            let currentImageIndex = 0;
+            
+            // Get URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const propertyId = urlParams.get('id');
+            
+            if (propertyId) {
+                const properties = JSON.parse(localStorage.getItem('properties') || '[]');
+                const property = properties.find(prop => prop.id === propertyId);
+                
+                if (property && property.images && property.images.length > 0) {
+                    // Populate image URLs array
+                    imageUrls = property.images.map(img => img.content);
+                }
+            }
+            
+            // Open fullscreen on main image click
+            if (mainImage) {
+                mainImage.addEventListener('click', function() {
+                    openFullscreen(0);
+                });
+            }
+            
+            // Add event listeners for thumbnails after they're created
+            function addThumbnailListeners() {
+                const thumbnails = document.querySelectorAll('.property-thumbnail');
+                thumbnails.forEach((thumbnail, index) => {
+                    // Add click for fullscreen (shift+click or long press)
+                    thumbnail.addEventListener('click', function(e) {
+                        if (e.shiftKey) {
+                            // Open fullscreen with index+1 (because 0 is the main image)
+                            openFullscreen(index + 1);
+                        }
+                    });
+                    
+                    // Add long press for fullscreen
+                    let pressTimer;
+                    thumbnail.addEventListener('mousedown', function() {
+                        pressTimer = window.setTimeout(function() {
+                            openFullscreen(index + 1);
+                        }, 500);
+                    });
+                    
+                    thumbnail.addEventListener('mouseup', function() {
+                        clearTimeout(pressTimer);
+                    });
+                    
+                    thumbnail.addEventListener('mouseleave', function() {
+                        clearTimeout(pressTimer);
+                    });
+                });
+            }
+            
+            // Function to open fullscreen modal
+            function openFullscreen(index) {
+                if (imageUrls.length === 0) return;
+                
+                currentImageIndex = index;
+                fullscreenImage.src = imageUrls[currentImageIndex];
+                fullscreenModal.style.display = 'flex';
+                
+                // Disable body scroll
+                document.body.style.overflow = 'hidden';
+            }
+            
+            // Close fullscreen
+            fullscreenClose.addEventListener('click', function() {
+                fullscreenModal.style.display = 'none';
+                document.body.style.overflow = '';
+            });
+            
+            // Navigate previous image
+            fullscreenPrev.addEventListener('click', function() {
+                currentImageIndex = (currentImageIndex - 1 + imageUrls.length) % imageUrls.length;
+                fullscreenImage.src = imageUrls[currentImageIndex];
+            });
+            
+            // Navigate next image
+            fullscreenNext.addEventListener('click', function() {
+                currentImageIndex = (currentImageIndex + 1) % imageUrls.length;
+                fullscreenImage.src = imageUrls[currentImageIndex];
+            });
+            
+            // Keyboard navigation for fullscreen
+            document.addEventListener('keydown', function(e) {
+                if (fullscreenModal.style.display !== 'flex') return;
+                
+                if (e.key === 'ArrowLeft') {
+                    currentImageIndex = (currentImageIndex - 1 + imageUrls.length) % imageUrls.length;
+                    fullscreenImage.src = imageUrls[currentImageIndex];
+                } else if (e.key === 'ArrowRight') {
+                    currentImageIndex = (currentImageIndex + 1) % imageUrls.length;
+                    fullscreenImage.src = imageUrls[currentImageIndex];
+                } else if (e.key === 'Escape') {
+                    fullscreenModal.style.display = 'none';
+                    document.body.style.overflow = '';
+                }
+            });
+            
+            // Call this after dynamic thumbnails are created
+            setTimeout(addThumbnailListeners, 1000);
+        });
+    </script>
+</body>
+</html> 
